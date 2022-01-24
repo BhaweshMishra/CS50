@@ -200,7 +200,7 @@ class MinesweeperAI():
         """
         # mark the cell as a move that has been made
         self.moves_made.add(cell)
-        print("move made:",cell)
+    
         # mark the cell as safe
         
         self.knowledge.append(Sentence({cell},0))
@@ -211,14 +211,11 @@ class MinesweeperAI():
         # mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
         neighbour_cells,mine_count = self.neighbours(cell,count)
         self.knowledge.append(Sentence(neighbour_cells,mine_count))
-        print("neighbours:",neighbour_cells,mine_count)
+        
         
         temp_safe_cells = []
         temp_mines = []
-        print("219 knowledge:")
         for knowledge in self.knowledge:
-            
-            #print(knowledge.cells,":",knowledge.count)
             if knowledge.count == 0 :
                 for cells in knowledge.cells:
                     temp_safe_cells.append(cells)
@@ -237,23 +234,7 @@ class MinesweeperAI():
                 non_empty_knowledge.append(knowledge)
         self.knowledge = non_empty_knowledge
 
-        # inferring knowledge
-        
-
-
-        print("knowledge:")
-        for knowledge in self.knowledge:
-            print(knowledge.cells,":",knowledge.count)
-        print("safes: ",self.safes)
-        print("unopened safes: ",self.safes-self.moves_made)
-
-        print("mines: ",self.mines)
-        #print("moves made:",self.moves_made)
-        print("----------------------------")
         return
-
-
-
 
         raise NotImplementedError
 
@@ -270,8 +251,6 @@ class MinesweeperAI():
         if len(safe_cells) == 0:
             return None
         a = safe_cells.pop()
-
-        #self.moves_made.add(a)
         return a
         raise NotImplementedError
 
@@ -308,8 +287,6 @@ class MinesweeperAI():
                     continue
                 if i+x == self.height or y+j == self.width:
                     continue
-                # if (i+x,y+j) in self.moves_made:
-                #     continue
 
                 neighbours.add((x+i,y+j))
 
