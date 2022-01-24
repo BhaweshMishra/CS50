@@ -125,7 +125,7 @@ class Sentence():
         a cell is known to be a mine.
         """
         self.cells.remove(cell)
-        self.count -=1
+        self.count -= 1
         return
         raise NotImplementedError
 
@@ -166,16 +166,23 @@ class MinesweeperAI():
         to mark that cell as a mine as well.
         """
         self.mines.add(cell)
-           
+        for knowledge in self.knowledge:
+            if cell in knowledge.cells:
+                knowledge.mark_mine(cell)
+
+
 
     def mark_safe(self, cell):
         """
         Marks a cell as safe, and updates all knowledge
         to mark that cell as safe as well.
         """
-        self.safes.add(cell)
         
- 
+        self.safes.add(cell)
+        for knowledge in self.knowledge:
+            if cell in knowledge.cells:
+                knowledge.mark_safe(cell)
+
     def add_knowledge(self, cell, count):
         """
         Called when the Minesweeper board tells us, for a given
@@ -193,45 +200,56 @@ class MinesweeperAI():
         """
         # mark the cell as a move that has been made
         self.moves_made.add(cell)
-        
+        print("move made:",cell)
         # mark the cell as safe
-        self.mark_safe(cell)
-        self.knowledge.append(Sentence({cell},0))
         
+        self.knowledge.append(Sentence({cell},0))
+        self.mark_safe(cell)
         # add a new sentence to the AI's knowledge base based on the value of `cell` and `count`
         # taken care of in mark_mine fn
-        
+
         # mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
-        neighbour_cells = self.neighbours(cell)
-        self.knowledge.append(Sentence(neighbour_cells,count))
+        neighbour_cells,mine_count = self.neighbours(cell,count)
+        self.knowledge.append(Sentence(neighbour_cells,mine_count))
+        print("neighbours:",neighbour_cells,mine_count)
+        
+        temp_safe_cells = []
+        temp_mines = []
+        print("219 knowledge:")
+        for knowledge in self.knowledge:
+            
+            #print(knowledge.cells,":",knowledge.count)
+            if knowledge.count == 0 :
+                for cells in knowledge.cells:
+                    temp_safe_cells.append(cells)
+            if knowledge.count == len(knowledge.cells) :
+                for cells in knowledge.cells:
+                    temp_mines.append(cells)
+        for cells in temp_safe_cells:
+            self.mark_safe(cells)
+        for cells in temp_mines:
+            self.mark_mine(cells)
+
+        #remove empty knowledge
+        non_empty_knowledge =[]
+        for knowledge in self.knowledge:
+            if len(knowledge.cells) > 0:
+                non_empty_knowledge.append(knowledge)
+        self.knowledge = non_empty_knowledge
 
         # inferring knowledge
-        for knowledge1 in self.knowledge:
-            for knowledge2 in self.knowledge:
-                if knowledge1.cells == knowledge2.cells and knowledge1.count == knowledge2.count:
-                    continue
-                if knowledge1.cells.issuperset(knowledge2.cells):
-                    new_knowledge = Sentence(knowledge1.cells-knowledge2.cells,knowledge1.count-knowledge2.count)
-                    if new_knowledge not in self.knowledge :
-                        self.knowledge.append(new_knowledge)
-                        
+        
 
+
+        print("knowledge:")
         for knowledge in self.knowledge:
-            if knowledge.count == len(knowledge.cells):
-                for cells in knowledge.cells:
-                    self.mark_mine(cells)
-            if knowledge.count == 0:
-                for cells in knowledge.cells:
-                    self.mark_safe(cells)
-
-       
-
+            print(knowledge.cells,":",knowledge.count)
         print("safes: ",self.safes)
+        print("unopened safes: ",self.safes-self.moves_made)
+
         print("mines: ",self.mines)
-        print("moves made:",self.moves_made)
-
-
-        print("--------")
+        #print("moves made:",self.moves_made)
+        print("----------------------------")
         return
 
 
@@ -252,8 +270,8 @@ class MinesweeperAI():
         if len(safe_cells) == 0:
             return None
         a = safe_cells.pop()
-        
-        self.moves_made.add(a)
+
+        #self.moves_made.add(a)
         return a
         raise NotImplementedError
 
@@ -268,37 +286,40 @@ class MinesweeperAI():
         for i in range(self.height):
             for j in range(self.height):
                 all_possible_moves.add((i,j))
-        
+
         not_played = all_possible_moves - self.moves_made - self.mines
         for i in not_played:
             if random.randint(0,2) == 1:
                 return i
         for i in not_played:
             return i
-        
+
         raise NotImplementedError
 
-    def neighbours(self,cell):
+    def neighbours(self,cell,count):
         i,j = cell
         neighbours = set()
         for x in range(-1,2):
             for y in range(-1,2):
-                
+
                 if x+i == i and y+j == j:
                     continue
                 if i+x < 0 or y+j < 0:
                     continue
                 if i+x == self.height or y+j == self.width:
                     continue
-                
+                # if (i+x,y+j) in self.moves_made:
+                #     continue
+
                 neighbours.add((x+i,y+j))
-                      
-        
-        return neighbours-self.moves_made
 
-                
+        for mine in self.mines:
+            if mine in neighbours:
+                count -= 1
+        return neighbours - self.safes - self.mines,count
 
 
-        
 
-                
+
+
+
