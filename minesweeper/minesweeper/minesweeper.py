@@ -293,7 +293,7 @@ class MinesweeperAI():
                 return i
         for i in not_played:
             return i
-
+        return None
         raise NotImplementedError
 
     def neighbours(self,cell,count):
