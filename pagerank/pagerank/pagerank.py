@@ -1,7 +1,10 @@
 import os
+from pydoc import pager
 import random
 import re
 import sys
+from tkinter import N
+import numpy as np
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -132,7 +135,41 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+
+    pagerank={}
+    n = len(corpus)
+    for page in corpus:
+        pagerank[page] = 1/n
+
+    while True:
+        old_pagerank = pagerank
+        
+        for page in pagerank:
+            summ = 0
+            for i in pages_that_link_to_page(page,corpus):
+                summ += pagerank[i]/len(corpus[i])
+
+            pagerank[page] = ((1-damping_factor)/n) + (damping_factor*summ)
+
+        diff_array = np.array(list(pagerank.values())) - np.array(list(old_pagerank.values()))
+        
+        for diff in diff_array:
+            if diff < 0.001:
+                return pagerank
+    
+        
+
     raise NotImplementedError
+
+def pages_that_link_to_page(p,corpus):
+    pages=[]
+    for page in corpus:
+        for links in corpus[page]:
+            if p in links:
+                pages.append(page)
+    return pages
+
+
 
 
 if __name__ == "__main__":
