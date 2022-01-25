@@ -62,21 +62,24 @@ def transition_model(corpus, page, damping_factor):
 
     # adding 0 probabilities to prob_dict
     for key in corpus:
-        if key not in prob_dict:
-            prob_dict[key] = 0
-        for value in corpus[key]:
-            if value not in prob_dict: 
-                prob_dict[value] = 0
+        prob_dict[key] = 0
     
     # adding initial random value to dict
     for key in prob_dict:
-        prob_dict[key] = (1-damping_factor) * len(prob_dict)
+        prob_dict[key] = (1-damping_factor) * (1/len(prob_dict))
 
     pages_connected_to_page = corpus[page]
     for i in pages_connected_to_page:
         if i in prob_dict:
-            prob_dict[i] += len(pages_connected_to_page) * damping_factor
+            prob_dict[i] += (1/len(pages_connected_to_page)) * damping_factor
     
+    #normalizing
+    summ=0
+    for i in prob_dict:
+        summ += prob_dict[i]
+    for i in prob_dict:
+        prob_dict[i] = prob_dict[i] / summ
+
     return prob_dict
 
 
@@ -92,7 +95,31 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    pagerank = {}
     
+    # initialising pagerank
+    for key in corpus:
+        pagerank[key] = 0
+    
+    mypage = random.choice(list(pagerank.keys()))
+    
+    for i in range(n):
+        pagerank[mypage] +=1
+        print("pagerank:", pagerank)
+        mymodel = transition_model(corpus,mypage,damping_factor)
+        print("corpus:",corpus)
+        print("mymodel",mymodel)
+        mypage = random.choices(list(mymodel.keys()),list(mymodel.values()))[0]
+        print("mypage:", mypage)
+        
+        # input()
+    
+    
+    
+    for i in pagerank:
+        pagerank[i] = pagerank[i]/n
+
+    return pagerank
     raise NotImplementedError
 
 
