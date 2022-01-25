@@ -108,12 +108,12 @@ def sample_pagerank(corpus, damping_factor, n):
     
     for i in range(n):
         pagerank[mypage] +=1
-        print("pagerank:", pagerank)
+        #print("pagerank:", pagerank)
         mymodel = transition_model(corpus,mypage,damping_factor)
-        print("corpus:",corpus)
-        print("mymodel",mymodel)
+        #print("corpus:",corpus)
+        #print("mymodel",mymodel)
         mypage = random.choices(list(mymodel.keys()),list(mymodel.values()))[0]
-        print("mypage:", mypage)
+        #print("mypage:", mypage)
         
         # input()
     
@@ -137,25 +137,52 @@ def iterate_pagerank(corpus, damping_factor):
     """
 
     pagerank={}
+    old_pagerank={}
     n = len(corpus)
     for page in corpus:
         pagerank[page] = 1/n
 
+    for page in corpus:
+        old_pagerank[page] = -1
+
+    print(corpus)
+    print()
     while True:
-        old_pagerank = pagerank
         
-        for page in pagerank:
-            summ = 0
-            for i in pages_that_link_to_page(page,corpus):
-                summ += pagerank[i]/len(corpus[i])
-
-            pagerank[page] = ((1-damping_factor)/n) + (damping_factor*summ)
-
-        diff_array = np.array(list(pagerank.values())) - np.array(list(old_pagerank.values()))
+        diff_array = abs(np.array(list(pagerank.values()),float) - np.array(list(old_pagerank.values()),float))
         
+        print("pagerank before updating:", pagerank)
+        print("old pagerank before updating:", old_pagerank)
+
         for diff in diff_array:
             if diff < 0.001:
+                print("final pagerank:", pagerank)
+                print("final old pagerank:", old_pagerank)
                 return pagerank
+            else:
+                for i in pagerank:
+                    old_pagerank[i] = pagerank[i]
+                break
+
+        
+        
+
+ 
+        for page in pagerank:
+            summ = 0
+            
+            for i in pages_that_link_to_page(page,corpus):
+                summ += pagerank[i]/len(corpus[i])
+            
+            pagerank[page] = ((1-damping_factor)/n) + (damping_factor*summ)
+
+        print()
+        print("pagerank:", pagerank)
+        print("old pagerank:", old_pagerank)
+        
+
+        
+
     
         
 
