@@ -99,6 +99,17 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
+
+        for node in self.domains:
+            new_domain = set()
+            for domain in self.domains[node]:
+                if len(domain) == node.length:
+                    new_domain.add(domain)
+            self.domains[node] = new_domain
+
+        print("Domains: ",self.domains)
+        return
+
         raise NotImplementedError
 
     def revise(self, x, y):
@@ -107,9 +118,41 @@ class CrosswordCreator():
         To do so, remove values from `self.domains[x]` for which there is no
         possible corresponding value for `y` in `self.domains[y]`.
 
-        Return True if a revision was made to the domain of `x`; return
-        False if no revision was made.
-        """
+        # Return True if a revision was made to the domain of `x`; return
+        # False if no revision was made.
+        # """
+        
+        new_domain = set()
+
+        
+        if (x,y) in self.crossword.overlaps and self.crossword.overlaps[(x,y)] != None:
+            if x.direction == 'across':
+                x_target_letter =  self.crossword.overlaps[(x,y)][1]
+            if x.direction == 'down':
+                x_target_letter =  self.crossword.overlaps[(x,y)][0]
+            if y.direction == 'across':
+                y_target_letter =  self.crossword.overlaps[(x,y)][1]
+            if y.direction == 'down':
+                y_target_letter =  self.crossword.overlaps[(x,y)][0]
+
+        for xdomain in self.domains[x]:
+            for ydomain in self.domains[y]:
+                try:
+                    if xdomain[x_target_letter] == ydomain[y_target_letter]:
+                        new_domain.add(xdomain)
+                except:
+                    pass
+
+        print("revise function: ",new_domain)
+        if self.domains[x] == new_domain:
+            return False
+        
+        self.domains[x] == new_domain
+        
+        return True        
+
+
+
         raise NotImplementedError
 
     def ac3(self, arcs=None):
@@ -121,6 +164,7 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
+        
         raise NotImplementedError
 
     def assignment_complete(self, assignment):
@@ -128,6 +172,7 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
+        
         raise NotImplementedError
 
     def consistent(self, assignment):
@@ -181,7 +226,13 @@ def main():
 
     # Generate crossword
     crossword = Crossword(structure, words)
+    for i in crossword.overlaps:
+        print(i,':',crossword.overlaps[i])
+    
+    
     creator = CrosswordCreator(crossword)
+    creator.enforce_node_consistency()
+    creator.revise(Variable(4, 1, 'across', 4), Variable(1, 4, 'down', 4))
     assignment = creator.solve()
 
     # Print result
