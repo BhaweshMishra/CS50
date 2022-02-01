@@ -107,7 +107,6 @@ class CrosswordCreator():
                     new_domain.add(domain)
             self.domains[node] = new_domain
 
-        print("Domains: ",self.domains)
         return
 
         raise NotImplementedError
@@ -123,7 +122,7 @@ class CrosswordCreator():
         # """
         
         new_domain = set()
-
+        print("domains: ",self.domains)
         
         if (x,y) in self.crossword.overlaps and self.crossword.overlaps[(x,y)] != None:
             if x.direction == 'across':
@@ -151,8 +150,6 @@ class CrosswordCreator():
         
         return True        
 
-
-
         raise NotImplementedError
 
     def ac3(self, arcs=None):
@@ -164,6 +161,18 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
+        queue = [x for x in self.crossword.overlaps]
+        while len(queue) != 0:
+            X,Y = queue.pop(0)
+            if self.revise(X,Y) == True:
+                if len(self.domains[X]) == 0:
+                    return False
+                for z in self.crossword.neighbors(X):
+                    queue.append((z,X))
+        return True
+                
+
+
         
         raise NotImplementedError
 
@@ -172,6 +181,11 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
+        for word in self.crossword.assignment:
+            if len(self.crossword.assignment[word]) == 0:
+                return False
+        return True
+        
         
         raise NotImplementedError
 
@@ -180,6 +194,7 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        
         raise NotImplementedError
 
     def order_domain_values(self, var, assignment):
@@ -232,7 +247,7 @@ def main():
     
     creator = CrosswordCreator(crossword)
     creator.enforce_node_consistency()
-    creator.revise(Variable(4, 1, 'across', 4), Variable(1, 4, 'down', 4))
+    creator.revise(Variable(4, 1, 'across', 4), Variable(0, 1, 'down', 5))
     assignment = creator.solve()
 
     # Print result
